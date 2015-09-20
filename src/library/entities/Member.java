@@ -13,9 +13,24 @@ public class Member implements IMember{
 
   private String firstName, lastName, contactPhone, emailAddress;
   private int id;
+  private EMemberState memberState;
+  private ILoan loan;
 
-  public Member(int MemberId, String memberFirstName, String memberLastName, String memberContact, String memberEmail ){
-
+  public Member(int memberId, String memberFirstName, String memberLastName, String memberContact, String memberEmail ){
+    if (    memberId > 0
+            && memberFirstName != null  && !memberFirstName.isEmpty()
+            && memberLastName != null   && !memberLastName.isEmpty()
+            && memberContact != null    && !memberContact.isEmpty()
+            && memberEmail != null      && !memberEmail.isEmpty()){
+      id = memberId;
+      firstName = memberFirstName;
+      lastName = memberLastName;
+      contactPhone = memberContact;
+      emailAddress = memberEmail;
+      memberState = EMemberState.BORROWING_ALLOWED;
+    } else {
+      throw new IllegalArgumentException("Constructor: Incorrect Parameters");
+    }
   }
 
   @Override
@@ -68,33 +83,30 @@ public class Member implements IMember{
 
   }
 
+  //getters ####################################################################
+
   @Override
   public EMemberState getState() {
-    return null;
+    return memberState;
   }
-
   @Override
   public String getFirstName() {
-    return null;
+    return firstName;
   }
-
   @Override
   public String getLastName() {
-    return null;
+    return lastName;
   }
-
   @Override
   public String getContactPhone() {
-    return null;
+    return contactPhone;
   }
-
   @Override
   public String getEmailAddress() {
-    return null;
+    return emailAddress;
   }
-
   @Override
   public int getID() {
-    return 0;
+    return id;
   }
 }
