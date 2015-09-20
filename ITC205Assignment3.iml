@@ -28,6 +28,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="junit:junit:4.0" level="project" />
+    <orderEntry type="library" name="junit:junit:4.8.1" level="project" />
+    <orderEntry type="library" name="lib" level="project" />
   </component>
 </module>

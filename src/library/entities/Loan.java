@@ -11,6 +11,27 @@ import java.util.Date;
  */
 public class Loan implements ILoan {
 
+  private IBook book;
+  private IMember borrower;
+  private Date borrowDate, dueDate;
+  private int loanId;
+
+
+  public Loan(int id, IBook loanedBook, IMember borrowMember, Date dateBorrowed, Date dateDue){
+  if (id > 0
+          && loanedBook != null
+          && borrowMember !=null
+          && dateDue.after(dateBorrowed)){
+    loanId = id;
+    book = loanedBook;
+    borrower = borrowMember;
+    borrowDate = dateBorrowed;
+    dueDate = dateDue;
+  } else{
+    throw new IllegalArgumentException("Constructor: incorrect Parameters");
+  }
+  }
+
   @Override
   public void commit(int id) {
 

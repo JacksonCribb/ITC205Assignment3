@@ -10,6 +10,14 @@ import java.util.List;
  * Created by jackson on 20/09/15.
  */
 public class Member implements IMember{
+
+  private String firstName, lastName, contactPhone, emailAddress;
+  private int id;
+
+  public Member(int MemberId, String memberFirstName, String memberLastName, String memberContact, String memberEmail ){
+
+  }
+
   @Override
   public boolean hasOverDueLoans() {
     return false;
