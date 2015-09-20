@@ -13,7 +13,7 @@ public class testMember {
 
   private String firstName, lastName, contactPhone, emailAddress;
   private int id;
-  private Member member;
+  private Member Member;
 
   // before and after Stuff ####################################################
   @Before
@@ -23,11 +23,11 @@ public class testMember {
     lastName = "the gray";
     contactPhone = "0438556638";
     emailAddress = "superwizard69@theshire.com";
-    member = new Member(id, firstName, lastName, contactPhone, emailAddress);
+    Member = new Member(id, firstName, lastName, contactPhone, emailAddress);
   }
   @After
   public void tearDown(){
-    member = null;
+    Member = null;
   }
 
   //Constructor Tests ##########################################################

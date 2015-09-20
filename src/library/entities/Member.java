@@ -16,7 +16,8 @@ public class Member implements IMember{
   private EMemberState memberState;
   private ILoan loan;
 
-  public Member(int memberId, String memberFirstName, String memberLastName, String memberContact, String memberEmail ){
+  public Member(int memberId, String memberFirstName, String
+          memberLastName, String memberContact, String memberEmail){
     if (    memberId > 0
             && memberFirstName != null  && !memberFirstName.isEmpty()
             && memberLastName != null   && !memberLastName.isEmpty()
