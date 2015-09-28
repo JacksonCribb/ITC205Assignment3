@@ -1,5 +1,6 @@
 package library.tests;
 
+import library.Main;
 import library.entities.Book;
 import library.entities.Loan;
 import library.entities.Member;
@@ -28,6 +29,7 @@ public class testHelpers {
     member = new Member(1, "aaa", "aaa", "aaa", "aaa");
     Assert.assertNotNull(member);
     loan = new Loan(1,book, member, LocalDate.now(), LocalDate.of(2019, Month.JANUARY, 5));
+    Assert.assertNotNull(loan);
   }
 
 }

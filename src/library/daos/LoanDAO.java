@@ -11,7 +11,8 @@ import java.util.List;
 /**
  * Created by jackson on 20/09/15.
  */
-public class LoanDao implements ILoanDAO{
+public class LoanDAO implements ILoanDAO{
+
   @Override
   public ILoan createLoan(IMember borrower, IBook book) {
     return null;

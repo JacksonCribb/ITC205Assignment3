@@ -14,7 +14,6 @@ public class Member implements IMember{
   private String firstName, lastName, contactPhone, emailAddress;
   private int id;
   private EMemberState memberState;
-  private ILoan loan;
 
   public Member(int memberId, String memberFirstName, String
           memberLastName, String memberContact, String memberEmail){
@@ -61,12 +60,12 @@ public class Member implements IMember{
 
   @Override
   public void addFine(float fine) {
-
+throw new RuntimeException("Not Yet implemented!");
   }
 
   @Override
   public void payFine(float payment) {
-
+throw new RuntimeException("Not Yet Implemented!");
   }
 
   @Override
