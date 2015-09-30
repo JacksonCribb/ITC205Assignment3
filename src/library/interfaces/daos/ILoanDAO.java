@@ -25,7 +25,7 @@ public interface ILoanDAO {
 
 	public List<ILoan> findLoansByBookTitle(String title);
 
-	public void updateOverDueStatusDate(LocalDate currentDate);
+	public void updateOverDueStatusDate(Date currentDate);
 
 	public List<ILoan> findOverDueLoans();
 

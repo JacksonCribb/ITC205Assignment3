@@ -95,7 +95,7 @@ public class Main implements IMainListener {
 		cal.setTime(now);
 		cal.add(Calendar.DATE, ILoan.LOAN_PERIOD + 1);
 		Date checkDate = cal.getTime();		
-		loanDAO.updateOverDueStatus(checkDate);
+		//loanDAO.updateOverDueStatus(checkDate);
 		
 		//create a member with maxed out unpaid fines
 		member[2].addFine(10.0f);

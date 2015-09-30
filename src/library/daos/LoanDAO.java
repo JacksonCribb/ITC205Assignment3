@@ -105,7 +105,7 @@ public class LoanDAO implements ILoanDAO {
   }
 
   @Override
-  public void updateOverDueStatusDate(LocalDate currentDate) {
+  public void updateOverDueStatusDate(Date currentDate) {
     for (ILoan loan : loanMap.values()) {
       loan.checkOverDue(currentDate);
     }

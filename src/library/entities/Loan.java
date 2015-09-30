@@ -88,6 +88,11 @@ public class Loan implements ILoan {
   }
 
   @Override
+  public boolean isCurrent() {
+    return false;
+  }
+
+  @Override
   public IBook getBook() {
     return book;
   }
