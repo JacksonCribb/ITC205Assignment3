@@ -1,11 +1,13 @@
 package library.interfaces.daos;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
 import library.interfaces.entities.IBook;
 import library.interfaces.entities.ILoan;
 import library.interfaces.entities.IMember;
+import org.mockito.cglib.core.Local;
 
 public interface ILoanDAO {
 		
@@ -22,8 +24,8 @@ public interface ILoanDAO {
 	public List<ILoan> findLoansByBorrower(IMember borrower);
 
 	public List<ILoan> findLoansByBookTitle(String title);
-	
-	public void updateOverDueStatus(Date currentDate);
+
+	public void updateOverDueStatusDate(LocalDate currentDate);
 
 	public List<ILoan> findOverDueLoans();
 

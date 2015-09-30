@@ -14,6 +14,7 @@ public class Book implements IBook {
   private String author, title, callNumber;
   private ELoanState loan;
   private EBookState bookState;
+  private ILoan currentLoan;
 
 
 
@@ -34,10 +35,13 @@ public class Book implements IBook {
     }
   }
 
-  //TODO: this Function
+
   @Override
   public void borrow(ILoan loan) {
-
+  if (bookState != EBookState.AVAILABLE){
+    throw new RuntimeException("Book is not currently Available! Book State = " + bookState);
+  }
+   currentLoan = loan;
   }
 
   //Used for testing to set the state of the book, DO NOT USE OTHERWISE!!!
@@ -52,7 +56,7 @@ public class Book implements IBook {
     return null;
 
     }
-    return null;
+    return currentLoan;
   }
 
   @Override
@@ -66,8 +70,7 @@ public class Book implements IBook {
     } else {
       bookState = EBookState.AVAILABLE;
     }
-
-
+  currentLoan = null;
   }
 
   @Override

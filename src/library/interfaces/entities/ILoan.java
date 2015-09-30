@@ -1,6 +1,7 @@
 package library.interfaces.entities;
 
-import java.time.LocalDate;
+
+import java.util.Date;
 
 public interface ILoan {
 	
@@ -13,7 +14,7 @@ public interface ILoan {
 	
 	public boolean isOverDue();
 	
-	public boolean checkOverDue(LocalDate currentDate);
+	public boolean checkOverDue(Date currentDate);
 	
 	public IMember getBorrower();
 	
