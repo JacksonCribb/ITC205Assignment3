@@ -106,13 +106,14 @@ public class BorrowUC_CTL implements ICardReaderListener,
 
 	@Override
 	public void cardSwiped(int memberID) {
+
+		if (state != EBorrowState.INITIALIZED){
+			throw new RuntimeException("BorrowState is not Initialized! State = " + state);
+		}
+
 		borrower = memberDAO.getMemberByID(memberID);
 		scanCount = borrower.getLoans().size();
 				//Has reached Fine Limit
-		if (state != EBorrowState.INITIALIZED){
-			throw new RuntimeException("BorrowState is not Initialized");
-		}
-
 		if (borrower.hasReachedFineLimit()) {
 			ui.displayOverFineLimitMessage(borrower.getFineAmount());
 			reader.setEnabled(false);
@@ -150,8 +151,6 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	//TODO Complete Book Scanned Function
 	@Override
 	public void bookScanned(int barcode) {
-
-
 		throw new RuntimeException("Not implemented yet");
 	}
 
