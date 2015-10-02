@@ -46,7 +46,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 
 
 	private int scanCount = 0;
-	private int loanLimit = 3;
+	private int loanLimit = 10;
 	private IBorrowUI ui;
 
 	private EBorrowState state;
@@ -122,7 +122,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 
 
 		borrower = memberDAO.getMemberByID(memberID);
-		scanCount = borrower.getLoans().size();
+
 				//Has reached Fine Limit
 		if (borrower.hasReachedFineLimit()) {
 			ui.displayOverFineLimitMessage(borrower.getFineAmount());
@@ -152,7 +152,9 @@ public class BorrowUC_CTL implements ICardReaderListener,
 				setState(EBorrowState.SCANNING_BOOKS);
 				reader.setEnabled(false);
 				scanner.setEnabled(true);
-                //TODO : add existing loan information
+                scanCount = borrower.getLoans().size();
+                loanList = borrower.getLoans();
+                ui.displayExistingLoan(buildLoanListDisplay(loanList));
 			}
 		}
 
@@ -172,11 +174,10 @@ public class BorrowUC_CTL implements ICardReaderListener,
             ui.displayErrorMessage("Book Does not exist!");
         } else if (book.getState() != EBookState.AVAILABLE) {
             ui.displayErrorMessage("Book is currently not available for loan");
-        } else if (!bookList.isEmpty()) {
-
-            for (IBook b : bookList) {
-                if (b.getID() == barcode) {
-                    ui.displayErrorMessage("Book has already been Scanned");
+        } else if (!loanList.isEmpty()) {
+            for (ILoan l : loanList) {
+                if (l.getBook().getID() == book.getID()) {
+                    ui.displayErrorMessage("You have already Scanned this Book");
                 }
             }
         } else if (scanCount < loanLimit) {

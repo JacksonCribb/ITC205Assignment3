@@ -84,13 +84,24 @@ public class testBorrowBookScanned {
         //create a list of borrowed Books
         loanList = new ArrayList<ILoan>();
         for (int i=0; i < 7 ; i++) {
-            loanList.add(mock(Loan.class));
+            loanList.add(testLoan);
         }
+        when (testLoan.getBook()).thenReturn(testBook);
+
 
         testBorrower = new BorrowUC_CTL(cardReader, scanner, printer, display, bookDAO, loanDAO, memberDao, borrowUI);
-        testBorrower.initialise();
+       // testBorrower.initialise();
+        when (testMember.hasFinesPayable()).thenReturn(false);
+        when (testMember.hasReachedFineLimit()).thenReturn(false);
+        when (testMember.hasReachedLoanLimit()).thenReturn(false);
+        when (memberDao.getMemberByID(1)).thenReturn(testMember);
+        when (testMember.getLoans()).thenReturn(loanList);
+        testBorrower.setState(EBorrowState.INITIALIZED);
+        testBorrower.cardSwiped(1);
         testBorrower.setState(EBorrowState.SCANNING_BOOKS);
-        when (bookDAO.getBookByID(anyInt())).thenReturn(testBook);
+
+
+        when(bookDAO.getBookByID(anyInt())).thenReturn(testBook);
         when(testBook.getState()).thenReturn(EBookState.AVAILABLE);
         when(loanDAO.getLoanByBook(testBook)).thenReturn(testLoan);
         when (testBook.toString()).thenReturn("aaa");
@@ -132,7 +143,7 @@ public class testBorrowBookScanned {
     public void testWithAlreadyBorrowedBook(){
         when (testBook.getState()).thenReturn(EBookState.DAMAGED);
         testBorrower.bookScanned(1);
-        verify(borrowUI).displayErrorMessage("Book is currently not available for loan");
+       verify(borrowUI).displayErrorMessage("Book is currently not available for loan");
     }
 
 
@@ -140,8 +151,7 @@ public class testBorrowBookScanned {
     public void testBookInLoanList(){
         testBorrower.bookScanned(1);
         when (testBook.getID()).thenReturn(1);
-        testBorrower.bookScanned(1);
-        verify (borrowUI).displayErrorMessage("Book has already been Scanned!");
+        verify(borrowUI).displayErrorMessage("You have already Scanned this Book");
 
     }
 

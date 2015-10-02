@@ -84,7 +84,7 @@ public class testBorrowCardSwiped {
         for (int i=0; i < 7 ; i++) {
             loanList.add(mock(Loan.class));
         }
-
+        when (testMember.getLoans()).thenReturn(loanList);
         testBorrower = new BorrowUC_CTL(cardReader, scanner, printer, display, bookDAO, loanDAO, memberDao, borrowUI);
 
     }
