@@ -6,6 +6,7 @@ import java.util.List;
 import javax.swing.JPanel;
 
 import library.daos.BookDAO;
+import library.daos.LoanDAO;
 import library.entities.Book;
 import library.hardware.Scanner;
 import library.interfaces.EBorrowState;
@@ -225,7 +226,12 @@ public class BorrowUC_CTL implements ICardReaderListener,
 
 	@Override
 	public void loansConfirmed() {
-		throw new RuntimeException("Not implemented yet");
+        if (state != EBorrowState.CONFIRMING_LOANS){
+            throw new RuntimeException("Borrower is incorrect State! state = " + state);
+        }
+        for(ILoan l: loanList){
+            loanDAO.commitLoan(l);
+        }
 	}
 
 	@Override
