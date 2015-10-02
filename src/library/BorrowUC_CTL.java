@@ -213,7 +213,14 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	
 	@Override
 	public void scansCompleted() {
-		throw new RuntimeException("Not implemented yet");
+		if (state != EBorrowState.SCANNING_BOOKS){
+			throw new RuntimeException("Borrower is incorrect State! state = " + state);}
+		if (loanList.size() == 0){
+			ui.displayErrorMessage("No Loans are Pending, Scan at least 1 book first!");
+		} else {
+			state = EBorrowState.CONFIRMING_LOANS;
+			ui.setState(EBorrowState.CONFIRMING_LOANS);
+		}
 	}
 
 	@Override
