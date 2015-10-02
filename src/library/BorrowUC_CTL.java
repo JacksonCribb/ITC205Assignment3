@@ -5,6 +5,9 @@ import java.util.List;
 
 import javax.swing.JPanel;
 
+import library.daos.BookDAO;
+import library.entities.Book;
+import library.hardware.Scanner;
 import library.interfaces.EBorrowState;
 import library.interfaces.IBorrowUI;
 import library.interfaces.IBorrowUIListener;
@@ -22,6 +25,7 @@ import library.interfaces.hardware.IPrinter;
 import library.interfaces.hardware.IScanner;
 import library.interfaces.hardware.IScannerListener;
 import library.panels.borrow.ABorrowPanel;
+import library.panels.borrow.ScanningPanel;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -38,8 +42,10 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	private IScanner scanner; 
 	private IPrinter printer; 
 	private IDisplay display;
-	//private String state;
+
+
 	private int scanCount = 0;
+	private int loanLimit;
 	private IBorrowUI ui;
 
 	private EBorrowState state;
@@ -88,6 +94,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 		this.ui = ui;
 		state = EBorrowState.CREATED;
 
+
 	}
 	
 	public void initialise() {
@@ -106,16 +113,17 @@ public class BorrowUC_CTL implements ICardReaderListener,
 
 	@Override
 	public void cardSwiped(int memberID) {
-
 		if (state != EBorrowState.INITIALIZED){
 			throw new RuntimeException("BorrowState is not Initialized! State = " + state);
 		}
+
 
 		borrower = memberDAO.getMemberByID(memberID);
 		scanCount = borrower.getLoans().size();
 				//Has reached Fine Limit
 		if (borrower.hasReachedFineLimit()) {
 			ui.displayOverFineLimitMessage(borrower.getFineAmount());
+			setState(EBorrowState.BORROWING_RESTRICTED);
 			reader.setEnabled(false);
 			scanner.setEnabled(false);
 		}
@@ -123,6 +131,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 		else if (borrower.hasReachedLoanLimit()){
 		ui.displayAtLoanLimitMessage();
 			setState(EBorrowState.BORROWING_RESTRICTED);
+			ui.setState(EBorrowState.BORROWING_RESTRICTED);
 			reader.setEnabled(false);
 			scanner.setEnabled(false);
 		}
@@ -131,6 +140,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 			if (borrower.hasFinesPayable()){
 				ui.displayOutstandingFineMessage(borrower.getFineAmount());
 				setState(EBorrowState.SCANNING_BOOKS);
+				ui.setState(EBorrowState.SCANNING_BOOKS);
 				reader.setEnabled(false);
 				scanner.setEnabled(true);
 
@@ -139,6 +149,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 			else {
 				ui.displayMemberDetails(borrower.getID(), borrower.getFirstName(),borrower.getContactPhone());
 				setState(EBorrowState.SCANNING_BOOKS);
+				ui.setState(EBorrowState.SCANNING_BOOKS);
 				reader.setEnabled(false);
 				scanner.setEnabled(true);
 			}
@@ -151,7 +162,43 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	//TODO Complete Book Scanned Function
 	@Override
 	public void bookScanned(int barcode) {
-		throw new RuntimeException("Not implemented yet");
+
+		if (state != EBorrowState.SCANNING_BOOKS) {
+			throw new RuntimeException("Borrow state is incorrect! state = " + state);
+		}
+		IBook book = bookDAO.getBookByID(barcode);
+
+
+		if (book == null) {
+			ui.displayErrorMessage("Book Does not exist");
+		}
+
+
+		else if (book.getState() != EBookState.AVAILABLE) {
+			ui.displayErrorMessage("Book is currently not available for loan");
+		}
+
+		else if (bookList.size() > 0) {
+			for (IBook b : bookList) {
+				if (b == book) {
+					ui.displayErrorMessage("Book has already been Scanned");
+				}
+			}
+		}
+
+
+		else if (scanCount <= loanLimit) {
+			scanCount ++;
+			loanDAO.createLoan(borrower, book);
+			loanList.add(loanDAO.getLoanByBook(book));
+			ui.displayPendingLoan(buildLoanListDisplay(loanList));
+
+		} else {
+			ui.displayErrorMessage("You have reached the maximum Number Of loans");
+			scanner.setEnabled(false);
+			this.state = EBorrowState.CONFIRMING_LOANS;
+			ui.setState(EBorrowState.CONFIRMING_LOANS);
+		}
 	}
 
 	
