@@ -74,12 +74,27 @@ public class testBorrowBookScanned {
         for (int i=0; i < 7 ; i++) {
             loanList.add(mock(Loan.class));
         }
+        when (testMember.getFirstName()).thenReturn("Amanda");
+        when (testMember.getLastName()).thenReturn("Hugankiss");
+        when (testMember.getID()).thenReturn(0001);
+        when (testMember.getContactPhone()).thenReturn("12313123");
+        when (testMember.getEmailAddress()).thenReturn("apples@oranges.com");
+
+
+        //create a list of borrowed Books
+        loanList = new ArrayList<ILoan>();
+        for (int i=0; i < 7 ; i++) {
+            loanList.add(mock(Loan.class));
+        }
 
         testBorrower = new BorrowUC_CTL(cardReader, scanner, printer, display, bookDAO, loanDAO, memberDao, borrowUI);
+        testBorrower.initialise();
         testBorrower.setState(EBorrowState.SCANNING_BOOKS);
         when (bookDAO.getBookByID(anyInt())).thenReturn(testBook);
         when(testBook.getState()).thenReturn(EBookState.AVAILABLE);
-        when (loanDAO.getLoanByBook(testBook)).thenReturn(testLoan);
+        when(loanDAO.getLoanByBook(testBook)).thenReturn(testLoan);
+        when (testBook.toString()).thenReturn("aaa");
+        when (testBook.getID()).thenReturn(1);
     }
 
     @After
@@ -88,6 +103,15 @@ public class testBorrowBookScanned {
         cardReader = null;
         testBorrower = null;
         bookDAO = null;
+    }
+
+    @Test
+    public void testALL(){
+        testAtMaxLoans();
+        testBookFine();
+        //testBookInLoanList();
+       // testNonExistingBook();
+        //testWithAlreadyBorrowedBook();
     }
 
         //test Check for Borrow State
@@ -116,8 +140,8 @@ public class testBorrowBookScanned {
     public void testBookInLoanList(){
         testBorrower.bookScanned(1);
         when (testBook.getID()).thenReturn(1);
-        testBorrower.bookScanned(2);
-        verify (borrowUI).displayErrorMessage("Book has already been Scanned");
+        testBorrower.bookScanned(1);
+        verify (borrowUI).displayErrorMessage("Book has already been Scanned!");
 
     }
 

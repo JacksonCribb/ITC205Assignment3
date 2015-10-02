@@ -152,6 +152,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 				setState(EBorrowState.SCANNING_BOOKS);
 				reader.setEnabled(false);
 				scanner.setEnabled(true);
+                //TODO : add existing loan information
 			}
 		}
 
@@ -162,41 +163,35 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	@Override
 	public void bookScanned(int barcode) {
 
-		if (state != EBorrowState.SCANNING_BOOKS) {
-			throw new RuntimeException("Borrow state is incorrect! state = " + state);
-		}
-		IBook book = bookDAO.getBookByID(barcode);
+        if (state != EBorrowState.SCANNING_BOOKS) {
+            throw new RuntimeException("Borrow state is incorrect! state = " + state);
+        }
+        IBook book = bookDAO.getBookByID(barcode);
 
-		if (book == null) {
-			ui.displayErrorMessage("Book Does not exist!");
-		}
+        if (book == null) {
+            ui.displayErrorMessage("Book Does not exist!");
+        } else if (book.getState() != EBookState.AVAILABLE) {
+            ui.displayErrorMessage("Book is currently not available for loan");
+        } else if (!bookList.isEmpty()) {
 
-
-		else if (book.getState() != EBookState.AVAILABLE) {
-			ui.displayErrorMessage("Book is currently not available for loan");
-		}
-
-		else if (!bookList.isEmpty()) {
-			for (IBook b : bookList) {
-				if (b.getID() == barcode) {
-					ui.displayErrorMessage("Book has already been Scanned");
+            for (IBook b : bookList) {
+                if (b.getID() == barcode) {
+                    ui.displayErrorMessage("Book has already been Scanned");
+                }
             }
-			}
-		}
+        } else if (scanCount < loanLimit) {
+            scanCount++;
+            loanDAO.createLoan(borrower, book);
+            loanList.add(loanDAO.getLoanByBook(book));
 
+            ui.displayPendingLoan(buildLoanListDisplay(loanList));
 
-		else if (scanCount < loanLimit) {
-			scanCount ++;
-			loanDAO.createLoan(borrower, book);
-			loanList.add(loanDAO.getLoanByBook(book));
-			ui.displayPendingLoan(buildLoanListDisplay(loanList));
-
-		} else {
-			ui.displayErrorMessage("You have reached the maximum Number Of loans");
-			scanner.setEnabled(false);
-			setState(EBorrowState.CONFIRMING_LOANS);
-		}
-	}
+        } else {
+            ui.displayErrorMessage("You have reached the maximum Number Of loans");
+            scanner.setEnabled(false);
+            setState(EBorrowState.SCANNING_BOOKS);
+        }
+    }
 
 	
 	public void setState(EBorrowState state) {
@@ -233,6 +228,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
         }
         scanner.setEnabled(false);
         printer.print(buildLoanListDisplay(loanList));
+        setState(EBorrowState.COMPLETED);
 	}
 
 	@Override
