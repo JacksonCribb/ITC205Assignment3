@@ -37,7 +37,7 @@ import static org.mockito.Mockito.*;
 /**
  * Created by jackson on 30/09/15.
  */
-public class testMemberInput {
+public class testBorrowCardSwiped {
     Scanner scanner;
     CardReader cardReader;
     Printer printer;

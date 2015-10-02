@@ -232,11 +232,20 @@ public class BorrowUC_CTL implements ICardReaderListener,
         for(ILoan l: loanList){
             loanDAO.commitLoan(l);
         }
+        scanner.setEnabled(false);
+        printer.print(buildLoanListDisplay(loanList));
 	}
 
 	@Override
 	public void loansRejected() {
-		throw new RuntimeException("Not implemented yet");
+        if (state != EBorrowState.CONFIRMING_LOANS){
+            throw new RuntimeException("Borrower is incorrect State! state = " + state);
+        }
+
+
+        state = EBorrowState.CANCELLED;
+        ui.setState(EBorrowState.CANCELLED);
+
 	}
 
 	private String buildLoanListDisplay(List<ILoan> loans) {
