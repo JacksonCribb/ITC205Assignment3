@@ -105,6 +105,8 @@ public class BorrowUC_CTL implements ICardReaderListener,
 		reader.setEnabled(true);
 		scanner.addListener(this);
 		scanner.setEnabled(false);
+        bookList = new ArrayList<IBook>();
+        loanList = new ArrayList<ILoan>();
 		state = EBorrowState.INITIALIZED;
 	}
 	
@@ -157,7 +159,6 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	}
 
 
-	//TODO Complete Book Scanned Function
 	@Override
 	public void bookScanned(int barcode) {
 
@@ -165,9 +166,6 @@ public class BorrowUC_CTL implements ICardReaderListener,
 			throw new RuntimeException("Borrow state is incorrect! state = " + state);
 		}
 		IBook book = bookDAO.getBookByID(barcode);
-        bookList = new ArrayList<IBook>();
-        loanList = new ArrayList<ILoan>();
-
 
 		if (book == null) {
 			ui.displayErrorMessage("Book Does not exist!");
@@ -214,14 +212,16 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	@Override
 	public void scansCompleted() {
 		if (state != EBorrowState.SCANNING_BOOKS){
-			throw new RuntimeException("Borrower is incorrect State! state = " + state);}
-		if (loanList.size() == 0){
-			ui.displayErrorMessage("No Loans are Pending, Scan at least 1 book first!");
-		} else {
-			state = EBorrowState.CONFIRMING_LOANS;
-			ui.setState(EBorrowState.CONFIRMING_LOANS);
-		}
+			throw new RuntimeException("Borrower is incorrect State! state = " + state);
+        }
+
+        state = EBorrowState.CONFIRMING_LOANS;
+        ui.setState(EBorrowState.CONFIRMING_LOANS);
+        ui.displayPendingLoan(buildLoanListDisplay(loanList));
+        scanner.setEnabled(false);
+
 	}
+
 
 	@Override
 	public void loansConfirmed() {
@@ -241,6 +241,11 @@ public class BorrowUC_CTL implements ICardReaderListener,
             throw new RuntimeException("Borrower is incorrect State! state = " + state);
         }
 
+        //Empty and reinitialize book and loan list
+        loanList = null;
+        bookList = null;
+        bookList = new ArrayList<IBook>();
+        loanList = new ArrayList<ILoan>();
 
         state = EBorrowState.CANCELLED;
         ui.setState(EBorrowState.CANCELLED);
