@@ -48,7 +48,7 @@ public class Main implements IMainListener {
 	@Override
 	public void borrowBooks() {
 		BorrowUC_CTL ctl = new BorrowUC_CTL(reader, scanner, printer, display, 
-				 null, null, null);
+				 this.bookDAO, this.loanDAO, this.memberDAO);
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
             	ctl.initialise();

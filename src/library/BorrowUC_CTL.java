@@ -27,13 +27,7 @@ import library.interfaces.hardware.IScanner;
 import library.interfaces.hardware.IScannerListener;
 import library.panels.borrow.ABorrowPanel;
 import library.panels.borrow.ScanningPanel;
-import org.junit.Test;
-import org.mockito.Mockito;
 
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyFloat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class BorrowUC_CTL implements ICardReaderListener, 
 									 IScannerListener, 
@@ -41,12 +35,12 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	
 	private ICardReader reader;
 	private IScanner scanner; 
-	private IPrinter printer; 
+	private IPrinter printer;
 	private IDisplay display;
 
 
 	private int scanCount = 0;
-	private int loanLimit = 10;
+	private int loanLimit = IMember.LOAN_LIMIT;
 	private IBorrowUI ui;
 
 	private EBorrowState state;
@@ -122,44 +116,46 @@ public class BorrowUC_CTL implements ICardReaderListener,
 
 
 		borrower = memberDAO.getMemberByID(memberID);
+                // Has over Due Books
+        if (borrower.hasOverDueLoans()) {
+            setState(EBorrowState.BORROWING_RESTRICTED);
+            ui.displayOverDueMessage();
+            reader.setEnabled(false);
+            scanner.setEnabled(false);
+        }
 
 				//Has reached Fine Limit
-		if (borrower.hasReachedFineLimit()) {
+		else if (borrower.hasReachedFineLimit()) {
+            setState(EBorrowState.BORROWING_RESTRICTED);
 			ui.displayOverFineLimitMessage(borrower.getFineAmount());
-			setState(EBorrowState.BORROWING_RESTRICTED);
 			reader.setEnabled(false);
 			scanner.setEnabled(false);
 		}
 				//Has Reached Loan Limit
 		else if (borrower.hasReachedLoanLimit()){
-		ui.displayAtLoanLimitMessage();
-			setState(EBorrowState.BORROWING_RESTRICTED);
+            setState(EBorrowState.BORROWING_RESTRICTED);
+		    ui.displayAtLoanLimitMessage();
 			reader.setEnabled(false);
 			scanner.setEnabled(false);
 		}
 				//Has Payable Fines
-		else {
-			if (borrower.hasFinesPayable()){
-				ui.displayOutstandingFineMessage(borrower.getFineAmount());
-				setState(EBorrowState.SCANNING_BOOKS);
-				reader.setEnabled(false);
-				scanner.setEnabled(true);
-
+		else if(borrower.hasFinesPayable()) {
+            setState(EBorrowState.BORROWING_RESTRICTED);
+            ui.displayOutstandingFineMessage(borrower.getFineAmount());
+            reader.setEnabled(false);
+            scanner.setEnabled(false);
 			}
 				//All good
-			else {
-				ui.displayMemberDetails(borrower.getID(), borrower.getFirstName(),borrower.getContactPhone());
-				setState(EBorrowState.SCANNING_BOOKS);
-				reader.setEnabled(false);
-				scanner.setEnabled(true);
-                scanCount = borrower.getLoans().size();
-                loanList = borrower.getLoans();
-                ui.displayExistingLoan(buildLoanListDisplay(loanList));
-			}
-		}
-
-
-	}
+        else {
+                setState(EBorrowState.SCANNING_BOOKS);
+            ui.displayMemberDetails(borrower.getID(), borrower.getFirstName(),borrower.getContactPhone());
+            reader.setEnabled(true);
+            scanner.setEnabled(false);
+            scanCount = borrower.getLoans().size();
+            loanList = borrower.getLoans();
+            ui.displayExistingLoan(buildLoanListDisplay(loanList));
+        }
+    }
 
 
 	@Override
@@ -172,25 +168,29 @@ public class BorrowUC_CTL implements ICardReaderListener,
 
         if (book == null) {
             ui.displayErrorMessage("Book Does not exist!");
-        } else if (book.getState() != EBookState.AVAILABLE) {
+
+        } else if (loanDAO.getLoanByBook(book) != null) {
             ui.displayErrorMessage("Book is currently not available for loan");
+
         } else if (!loanList.isEmpty()) {
             for (ILoan l : loanList) {
                 if (l.getBook().getID() == book.getID()) {
                     ui.displayErrorMessage("You have already Scanned this Book");
                 }
             }
-        } else if (scanCount < loanLimit) {
-            scanCount++;
-            loanDAO.createLoan(borrower, book);
-            loanList.add(loanDAO.getLoanByBook(book));
-
-            ui.displayPendingLoan(buildLoanListDisplay(loanList));
-
         } else {
-            ui.displayErrorMessage("You have reached the maximum Number Of loans");
-            scanner.setEnabled(false);
-            setState(EBorrowState.SCANNING_BOOKS);
+            if (scanCount < loanLimit) {
+                scanCount++;
+                loanDAO.createLoan(borrower, book);
+                loanList.add(loanDAO.getLoanByBook(book));
+
+                ui.displayPendingLoan(buildLoanListDisplay(loanList));
+
+            } else {
+                ui.displayErrorMessage("You have reached the maximum Number Of loans");
+                scanner.setEnabled(false);
+                setState(EBorrowState.SCANNING_BOOKS);
+            }
         }
     }
 
@@ -226,6 +226,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
         }
         for(ILoan l: loanList){
             loanDAO.commitLoan(l);
+            System.out.println(l.getBook().getTitle());
         }
         scanner.setEnabled(false);
         printer.print(buildLoanListDisplay(loanList));
