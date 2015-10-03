@@ -46,8 +46,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	private IBookDAO bookDAO;
 	private IMemberDAO memberDAO;
 	private ILoanDAO loanDAO;
-	
-	private List<IBook> bookList;
+
 	private List<ILoan> loanList;
 	private IMember borrower;
 
@@ -98,7 +97,6 @@ public class BorrowUC_CTL implements ICardReaderListener,
 		reader.setEnabled(true);
 		scanner.addListener(this);
 		scanner.setEnabled(false);
-        bookList = new ArrayList<IBook>();
         loanList = new ArrayList<ILoan>();
 		state = EBorrowState.INITIALIZED;
 	}
@@ -220,7 +218,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 
         state = EBorrowState.CONFIRMING_LOANS;
         ui.setState(EBorrowState.CONFIRMING_LOANS);
-        ui.displayPendingLoan(buildLoanListDisplay(loanList));
+        ui.displayConfirmingLoan(buildLoanListDisplay(loanList));
         scanner.setEnabled(false);
 
 	}
@@ -246,14 +244,13 @@ public class BorrowUC_CTL implements ICardReaderListener,
             throw new RuntimeException("Borrower is incorrect State! state = " + state);
         }
 
-        //Empty and reinitialize book and loan list
+        //Empty and reinitialize loan list
         loanList = null;
-        bookList = null;
-        bookList = new ArrayList<IBook>();
         loanList = new ArrayList<ILoan>();
 
-        state = EBorrowState.CANCELLED;
-        ui.setState(EBorrowState.CANCELLED);
+        setState(EBorrowState.INITIALIZED);
+		cardSwiped(borrower.getID());
+		ui.displayPendingLoan(null);
 
 	}
 
