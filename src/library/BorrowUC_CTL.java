@@ -1,7 +1,6 @@
 package library;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import javax.swing.JPanel;
 
@@ -152,8 +151,10 @@ public class BorrowUC_CTL implements ICardReaderListener,
             reader.setEnabled(true);
             scanner.setEnabled(false);
             scanCount = borrower.getLoans().size();
-            loanList = borrower.getLoans();
-            ui.displayExistingLoan(buildLoanListDisplay(loanList));
+           	loanList.addAll(borrower.getLoans());
+
+
+			ui.displayExistingLoan(buildLoanListDisplay(loanList));
         }
     }
 
@@ -182,7 +183,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
             if (scanCount < loanLimit) {
                 scanCount++;
                 loanDAO.createLoan(borrower, book);
-                loanList.add(loanDAO.getLoanByBook(book));
+                loanList.add(loanDAO.createLoan(borrower, book));
 
                 ui.displayPendingLoan(buildLoanListDisplay(loanList));
 

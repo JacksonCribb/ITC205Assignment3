@@ -130,7 +130,6 @@ public class fullTest {
         // Set everything Else up
         testBorrow = new BorrowUC_CTL(reader,scanner,printer,display,bookDAO,this.loanDAO,memberDAO, testUI);
         testBorrow.initialise();
-        System.out.println("aaa");
     }
 
         // Test member #3 who has maxed out unpaid fines
@@ -184,6 +183,8 @@ public class fullTest {
         verify (testUI).setState(EBorrowState.CONFIRMING_LOANS);
         testBorrow.loansRejected();
         verify (testUI).setState(EBorrowState.CANCELLED);
+        // Check the book Has not been borrowed
+        Assert.assertNull(bookDAO.getBookByID(12).getLoan());
     }
     @Test
     public void testAllGoodConfirm(){
@@ -197,7 +198,8 @@ public class fullTest {
         verify (testUI).setState(EBorrowState.COMPLETED);
         System.out.println(bookDAO.getBookByID(12).getAuthor());
         System.out.println(loanDAO.findLoansByBookTitle(bookDAO.getBookByID(12).getTitle()));
-        //Assert.assertTrue(loanDAO.getLoanByBook(bookDAO.getBookByID(12)).getBorrower() == memberDAO.getMemberByID(1));
+        // Check the book Has indeed Been Borrowed
+        Assert.assertTrue(loanDAO.getLoanByBook(bookDAO.getBookByID(12)).getBorrower() == memberDAO.getMemberByID(1));
     }
 
 }
