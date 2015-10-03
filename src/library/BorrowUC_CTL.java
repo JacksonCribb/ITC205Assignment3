@@ -115,12 +115,15 @@ public class BorrowUC_CTL implements ICardReaderListener,
 
 
 		borrower = memberDAO.getMemberByID(memberID);
+
                 // Has over Due Books
         if (borrower.hasOverDueLoans()) {
             setState(EBorrowState.BORROWING_RESTRICTED);
             ui.displayOverDueMessage();
             reader.setEnabled(false);
             scanner.setEnabled(false);
+			scanCount = borrower.getLoans().size();
+			loanList.addAll(borrower.getLoans());
         }
 
 				//Has reached Fine Limit
@@ -129,6 +132,8 @@ public class BorrowUC_CTL implements ICardReaderListener,
 			ui.displayOverFineLimitMessage(borrower.getFineAmount());
 			reader.setEnabled(false);
 			scanner.setEnabled(false);
+			scanCount = borrower.getLoans().size();
+			loanList.addAll(borrower.getLoans());
 		}
 				//Has Reached Loan Limit
 		else if (borrower.hasReachedLoanLimit()){
@@ -136,24 +141,25 @@ public class BorrowUC_CTL implements ICardReaderListener,
 		    ui.displayAtLoanLimitMessage();
 			reader.setEnabled(false);
 			scanner.setEnabled(false);
+			scanCount = borrower.getLoans().size();
+			loanList.addAll(borrower.getLoans());
 		}
 				//Has Payable Fines
 		else if(borrower.hasFinesPayable()) {
-            setState(EBorrowState.BORROWING_RESTRICTED);
+            setState(EBorrowState.SCANNING_BOOKS);
             ui.displayOutstandingFineMessage(borrower.getFineAmount());
-            reader.setEnabled(false);
-            scanner.setEnabled(false);
-			}
+			reader.setEnabled(false);
+			scanner.setEnabled(true);
+			scanCount = borrower.getLoans().size();
+			loanList.addAll(borrower.getLoans());}
 				//All good
         else {
                 setState(EBorrowState.SCANNING_BOOKS);
             ui.displayMemberDetails(borrower.getID(), borrower.getFirstName(),borrower.getContactPhone());
-            reader.setEnabled(true);
-            scanner.setEnabled(false);
+            reader.setEnabled(false);
+            scanner.setEnabled(true);
             scanCount = borrower.getLoans().size();
            	loanList.addAll(borrower.getLoans());
-
-
 			ui.displayExistingLoan(buildLoanListDisplay(loanList));
         }
     }

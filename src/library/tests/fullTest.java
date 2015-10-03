@@ -165,6 +165,8 @@ public class fullTest {
         testBorrow.cardSwiped(2);
         verify(testUI).displayOverDueMessage();
         testBorrow.bookScanned(3);
+        verify(scanner).setEnabled(true);
+        verify(reader).setEnabled(false);
     }
 
     @Test

@@ -1,5 +1,10 @@
 package library;
 
+import library.daos.BookDAO;
+import library.daos.LoanDAO;
+import library.daos.MemberDAO;
+import library.entities.Book;
+import library.entities.Loan;
 import library.hardware.CardReader;
 import library.hardware.Display;
 import library.hardware.Printer;
@@ -8,6 +13,9 @@ import library.hardware.Scanner;
 import java.util.Calendar;
 import java.util.Date;
 
+import library.helpers.BookHelper;
+import library.helpers.LoanHelper;
+import library.helpers.MemberHelper;
 import library.interfaces.IMainListener;
 import library.interfaces.daos.IBookDAO;
 import library.interfaces.daos.ILoanDAO;
@@ -26,14 +34,22 @@ public class Main implements IMainListener {
 	private IBookDAO bookDAO;
 	private ILoanDAO loanDAO;
 	private IMemberDAO memberDAO;
+	private MemberHelper memberHelper;
+	private BookHelper bookHelper;
+	private LoanHelper loanHelper;
 	
 	public Main() {
 		reader = new CardReader();
 		scanner = new Scanner();
 		printer = new Printer();
 		display = new Display();
-		
-		//setupTestData();
+		bookHelper = new BookHelper();
+		loanHelper = new LoanHelper();
+		memberHelper = new MemberHelper();
+
+		loanDAO = new LoanDAO(loanHelper);
+		bookDAO = new BookDAO(bookHelper);
+		memberDAO = new MemberDAO(memberHelper);
 	}
 
 
@@ -47,17 +63,19 @@ public class Main implements IMainListener {
 	
 	@Override
 	public void borrowBooks() {
-		BorrowUC_CTL ctl = new BorrowUC_CTL(reader, scanner, printer, display, 
-				 this.bookDAO, this.loanDAO, this.memberDAO);
+		setupTestData();
+		BorrowUC_CTL ctl = new BorrowUC_CTL(reader, scanner, printer, display,
+				 bookDAO, loanDAO, memberDAO);
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
             	ctl.initialise();
             }
-        });		
+        });
 	}
 
 	
 	private void setupTestData() {
+
         IBook[] book = new IBook[15];
 		IMember[] member = new IMember[6];
 		
@@ -94,8 +112,8 @@ public class Main implements IMainListener {
 		}
 		cal.setTime(now);
 		cal.add(Calendar.DATE, ILoan.LOAN_PERIOD + 1);
-		Date checkDate = cal.getTime();		
-		//loanDAO.updateOverDueStatus(checkDate);
+		Date checkDate = cal.getTime();
+		loanDAO.updateOverDueStatusDate(checkDate);
 		
 		//create a member with maxed out unpaid fines
 		member[2].addFine(10.0f);
@@ -124,7 +142,7 @@ public class Main implements IMainListener {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
             	main.display.setDisplay(new MainPanel(main), "Main Menu");
-                main.showGUI();
+				main.showGUI();
             }
         });
 	}
