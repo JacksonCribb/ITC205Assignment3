@@ -120,9 +120,9 @@ public class testBorrowBookScanned {
     public void testALL(){
         testAtMaxLoans();
         testBookFine();
-        //testBookInLoanList();
-       // testNonExistingBook();
-        //testWithAlreadyBorrowedBook();
+        testBookInLoanList();
+       testNonExistingBook();
+        testWithAlreadyBorrowedBook();
     }
 
         //test Check for Borrow State

@@ -18,6 +18,7 @@ import library.interfaces.EBorrowState;
 import library.interfaces.entities.IBook;
 import library.interfaces.entities.ILoan;
 import library.interfaces.entities.IMember;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -132,18 +133,50 @@ public class fullTest {
         testBorrow.initialise();
     }
 
-        // Test member #3 who has maxed out unpaid fines
+    @After
+    public void tearDown(){
+        memberHelper = null;
+        bookHelper = null;
+        loanHelper = null;
+
+        reader = null;
+        scanner = null;
+
+        bookDAO = null;
+        memberDAO = null;
+        loanDAO = null;
+
+        testBorrow = null;
+
+    }
+
+        // Test member #3 who has overDue Loans
     @Test(expected=RuntimeException.class)
-    public void runFullTest(){
-        testBorrow.cardSwiped(3);
-        verify (testUI).displayOverFineLimitMessage(anyFloat());
+    public void testOverDueLoans(){
+        testBorrow.cardSwiped(2);
+        verify (testUI).displayOverDueMessage();
         testBorrow.bookScanned(1);
         verify(scanner).setEnabled(false);
         verify(reader).setEnabled(false);
  }
 
+    // Test member #3 who has overDue Loans
+    @Test(expected=RuntimeException.class)
+    public void testMaxFines(){
+        testBorrow.cardSwiped(3);
+        verify (testUI).displayOverFineLimitMessage(anyFloat());
+        testBorrow.bookScanned(1);
+        verify(scanner).setEnabled(false);
+        verify(reader).setEnabled(false);
+    }
+    @Test
+    public void testMemberUnpaidLoans(){
+        testBorrow.cardSwiped(4);
+        verify(testUI).displayAtLoanLimitMessage();
+    }
+
     @Test(expected = RuntimeException.class)
-    public void testWithSomeFines(){
+    public void testWithSomeFines() throws RuntimeException{
         testBorrow.cardSwiped(5);
         verify (testUI).displayOutstandingFineMessage(anyFloat());
         testBorrow.bookScanned(1);
@@ -160,20 +193,7 @@ public class fullTest {
         testBorrow.scansCompleted();
     }
 
-    @Test(expected = RuntimeException.class)
-    public void testWithMaxLoans(){
-        testBorrow.cardSwiped(2);
-        verify(testUI).displayOverDueMessage();
-        testBorrow.bookScanned(3);
-        verify(scanner).setEnabled(true);
-        verify(reader).setEnabled(false);
-    }
 
-    @Test
-    public void testMemberUnpaidLoans(){
-        testBorrow.cardSwiped(4);
-        verify(testUI).displayAtLoanLimitMessage();
-    }
 
     @Test
     public void testAllGoodReject(){
@@ -184,7 +204,6 @@ public class fullTest {
         testBorrow.scansCompleted();
         verify (testUI).setState(EBorrowState.CONFIRMING_LOANS);
         testBorrow.loansRejected();
-        verify (testUI).setState(EBorrowState.CANCELLED);
         // Check the book Has not been borrowed
         Assert.assertNull(bookDAO.getBookByID(12).getLoan());
     }
@@ -198,8 +217,6 @@ public class fullTest {
         verify (testUI).setState(EBorrowState.CONFIRMING_LOANS);
         testBorrow.loansConfirmed();
         verify (testUI).setState(EBorrowState.COMPLETED);
-        System.out.println(bookDAO.getBookByID(12).getAuthor());
-        System.out.println(loanDAO.findLoansByBookTitle(bookDAO.getBookByID(12).getTitle()));
         // Check the book Has indeed Been Borrowed
         Assert.assertTrue(loanDAO.getLoanByBook(bookDAO.getBookByID(12)).getBorrower() == memberDAO.getMemberByID(1));
     }

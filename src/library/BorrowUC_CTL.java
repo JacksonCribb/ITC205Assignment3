@@ -7,6 +7,7 @@ import javax.swing.JPanel;
 import library.daos.BookDAO;
 import library.daos.LoanDAO;
 import library.entities.Book;
+import library.entities.Loan;
 import library.hardware.Scanner;
 import library.interfaces.EBorrowState;
 import library.interfaces.IBorrowUI;
@@ -42,12 +43,15 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	private int loanLimit = IMember.LOAN_LIMIT;
 	private IBorrowUI ui;
 
+	private IBook book;
+
 	private EBorrowState state;
 	private IBookDAO bookDAO;
 	private IMemberDAO memberDAO;
 	private ILoanDAO loanDAO;
 
 	private List<ILoan> loanList;
+	private List <ILoan> newLoanList;
 	private IMember borrower;
 
 	private boolean overdue;
@@ -69,6 +73,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 		this.bookDAO = bookDAO;
 		this.loanDAO = loanDAO;
 		this.memberDAO = memberDAO;
+		this.scanCount = IMember.LOAN_LIMIT;
 		this.ui = new BorrowUC_UI(this);
 		state = EBorrowState.CREATED;
 
@@ -98,6 +103,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 		scanner.addListener(this);
 		scanner.setEnabled(false);
         loanList = new ArrayList<ILoan>();
+		newLoanList = new ArrayList<ILoan>();
 		state = EBorrowState.INITIALIZED;
 	}
 	
@@ -160,45 +166,55 @@ public class BorrowUC_CTL implements ICardReaderListener,
            	loanList.addAll(borrower.getLoans());
 			ui.displayExistingLoan(buildLoanListDisplay(loanList));
         }
+		ui.displayMemberDetails(borrower.getID(), borrower.getFirstName() + borrower.getLastName(), borrower.getContactPhone());
     }
 
 
 	@Override
 	public void bookScanned(int barcode) {
 
-        if (state != EBorrowState.SCANNING_BOOKS) {
-            throw new RuntimeException("Borrow state is incorrect! state = " + state);
-        }
-        IBook book = bookDAO.getBookByID(barcode);
+		if (state != EBorrowState.SCANNING_BOOKS) {
+			throw new RuntimeException("Borrow state is incorrect! state = " + state);
+		}
+		book = bookDAO.getBookByID(barcode);
 
-        if (book == null) {
-            ui.displayErrorMessage("Book Does not exist!");
+		if (book == null) {
+			ui.displayErrorMessage("Book Does not exist!");
 
-        } else if (loanDAO.getLoanByBook(book) != null) {
-            ui.displayErrorMessage("Book is currently not available for loan");
+		} else if (loanDAO.getLoanByBook(book) != null) {
+			ui.displayErrorMessage("Book is currently not available for loan");
 
-        } else if (!loanList.isEmpty()) {
-            for (ILoan l : loanList) {
-                if (l.getBook().getID() == book.getID()) {
-                    ui.displayErrorMessage("You have already Scanned this Book");
-                }
-            }
-        } else {
-            if (scanCount < loanLimit) {
-                scanCount++;
-                loanDAO.createLoan(borrower, book);
-                loanList.add(loanDAO.createLoan(borrower, book));
+		} else if (!newLoanList.isEmpty()) {
+			Boolean bookFound = false;
+			for (ILoan l : newLoanList) {
+				if (l.getBook().getID() == book.getID()) {
+					bookFound = true;
+					ui.displayErrorMessage("You have already Scanned this Book");
+					break;
+				}
+			}
+			if (bookFound == false) {
+				borrowBook();
+			}
+		} else {
+			borrowBook();
+		}
+	}
 
-                ui.displayPendingLoan(buildLoanListDisplay(loanList));
+	public void borrowBook(){
+		if (scanCount < loanLimit) {
+			scanCount++;
+			newLoanList.add(loanDAO.createLoan(borrower, book));
+			ui.displayPendingLoan(buildLoanListDisplay(newLoanList));
+			ui.displayScannedBookDetails("Book ID: " + book.getID() + "\nAuthor: " + book.getAuthor() + "\nTitle: " + book.getTitle());
+		} else {
+			ui.displayErrorMessage("You have reached the maximum Number Of loans");
+			scanner.setEnabled(false);
+			setState(EBorrowState.SCANNING_BOOKS);
+		}
 
-            } else {
-                ui.displayErrorMessage("You have reached the maximum Number Of loans");
-                scanner.setEnabled(false);
-                setState(EBorrowState.SCANNING_BOOKS);
-            }
-        }
-    }
 
+	}
 	
 	public void setState(EBorrowState state) {
 		this.state =  state;
@@ -218,7 +234,7 @@ public class BorrowUC_CTL implements ICardReaderListener,
 
         state = EBorrowState.CONFIRMING_LOANS;
         ui.setState(EBorrowState.CONFIRMING_LOANS);
-        ui.displayConfirmingLoan(buildLoanListDisplay(loanList));
+        ui.displayConfirmingLoan(buildLoanListDisplay(newLoanList));
         scanner.setEnabled(false);
 
 	}
@@ -229,13 +245,13 @@ public class BorrowUC_CTL implements ICardReaderListener,
         if (state != EBorrowState.CONFIRMING_LOANS){
             throw new RuntimeException("Borrower is incorrect State! state = " + state);
         }
-        for(ILoan l: loanList){
+        for(ILoan l: newLoanList){
             loanDAO.commitLoan(l);
-            System.out.println(l.getBook().getTitle());
         }
         scanner.setEnabled(false);
-        printer.print(buildLoanListDisplay(loanList));
+        printer.print(buildLoanListDisplay(newLoanList));
         setState(EBorrowState.COMPLETED);
+		loanList.addAll(newLoanList);
 	}
 
 	@Override
@@ -245,8 +261,8 @@ public class BorrowUC_CTL implements ICardReaderListener,
         }
 
         //Empty and reinitialize loan list
-        loanList = null;
-        loanList = new ArrayList<ILoan>();
+        newLoanList = null;
+        newLoanList = new ArrayList<ILoan>();
 
         setState(EBorrowState.INITIALIZED);
 		cardSwiped(borrower.getID());
