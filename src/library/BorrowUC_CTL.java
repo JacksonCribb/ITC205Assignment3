@@ -224,6 +224,11 @@ public class BorrowUC_CTL implements ICardReaderListener,
 	@Override
 	public void cancelled() {
 		close();
+		borrower = null;
+		newLoanList = null;
+		book = null;
+		setState(EBorrowState.CREATED);
+		initialise();
 	}
 	
 	@Override
